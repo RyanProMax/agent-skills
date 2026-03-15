@@ -16,9 +16,51 @@
 | `analyze_dcf` | DCF 估值分析 (仅美股) | symbol |
 | `analyze_comps` | 可比公司分析 (仅美股) | symbol, sector? |
 
-## OpenClaw 配置
+## 部署方式
 
-在 OpenClaw 的 `.openclaw/` 配置目录中添加 MCP Server：
+### 方式 1: Docker (推荐)
+
+```bash
+# 拉取镜像
+docker pull ryanpro1024/stock-analysis-api:latest
+
+# 启动 MCP 容器
+docker run -d -e MODE=mcp --name stock-analysis-mcp ryanpro1024/stock-analysis-api:latest
+```
+
+**OpenClaw 配置：**
+
+```json
+{
+  "mcpServers": {
+    "stock-analysis": {
+      "command": "docker",
+      "args": ["exec", "-i", "stock-analysis-mcp", "python", "-m", "src.mcp_server.server"]
+    }
+  }
+}
+```
+
+### 方式 2: 本地运行
+
+```bash
+# 克隆仓库
+git clone https://github.com/RyanProMax/stock-analysis-api.git
+cd stock-analysis-api
+
+# 安装 uv (如果没有)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 创建虚拟环境并安装依赖
+uv venv
+source .venv/bin/activate
+uv pip install -e .
+
+# 启动 MCP 服务
+uv run mcp
+```
+
+**OpenClaw 配置：**
 
 ```json
 {
@@ -31,25 +73,6 @@
   }
 }
 ```
-
-## 安装步骤
-
-1. 克隆仓库
-
-```bash
-git clone https://github.com/RyanProMax/stock-analysis-api.git
-cd stock-analysis-api
-```
-
-2. 安装依赖
-
-```bash
-poetry install
-```
-
-3. 配置 OpenClaw
-
-将上述 MCP Server 配置添加到 OpenClaw 配置文件中。
 
 ## 支持的股票格式
 
