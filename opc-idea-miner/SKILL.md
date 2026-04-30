@@ -1,3 +1,8 @@
+---
+name: opc-idea-miner
+description: Use this skill when the user wants to discover one-person-company, side-business, solo-founder, or startup product ideas from fresh public signals, generate an OPC opportunity report, or invoke /idea.
+---
+
 # OPC Idea Miner Skill
 
 Use this skill when the user wants to discover side-business / one-person-company product ideas from fresh public signals and produce a fixed-template startup product analysis report.
@@ -16,6 +21,10 @@ Use this skill when the user wants to discover side-business / one-person-compan
 3. Deduplicates and clusters signals by product opportunity category.
 4. Scores each opportunity by heat, pain, OPC fit, MVP speed, defensibility, and novelty.
 5. Writes a fixed-template Markdown report and a JSON evidence file.
+
+## Slash command
+
+`/idea [optional focus]` runs this skill through Cli Claw skill-command dispatch. It rewrites the slash command into an isolated `assistant_prompt` task that instructs the agent to run `scripts/opc_idea_miner.py`, then return the generated report path and top 3 ideas.
 
 ## One-command CLI
 
