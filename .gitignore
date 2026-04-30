@@ -1,0 +1,44 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local secrets / config
+.env
+.env.*
+*.local
+config.yaml
+config.yml
+!config.example.yaml
+
+# Generated reports; keep intentional samples
+**/reports/*.md
+**/reports/*.json
+!**/reports/sample_report.md
+!**/reports/sample_report.json
+
+# Logs / temp
+*.log
+tmp/
+temp/

@@ -1,0 +1,57 @@
+# OPC Idea Miner - example config
+# 目标：自动收集“热门创意产品 / hackathon top 项目 / 行业热度信号”，输出固定模板创业产品分析报告。
+
+lookback_days: 30
+max_per_source: 25
+top_opportunities: 8
+output_language: zh-CN
+
+seed_topics:
+  - ai agent
+  - workflow automation
+  - browser automation
+  - voice agent
+  - llm eval
+  - prompt testing
+  - devtools
+  - chrome extension
+  - accessibility
+  - ecommerce ai
+  - ai search
+  - data extraction
+  - personal productivity
+
+sources:
+  hackernews: true
+  github: true
+  producthunt: true       # 需要 PRODUCTHUNT_TOKEN；无 token 时自动跳过
+  devpost: true
+  yc_rfs: true
+  gdelt: false            # 可选：新闻热度；默认关闭以减少请求量
+  huggingface: true       # 抓取 Hugging Face trending spaces/models 的公开端点；端点若变化会自动跳过
+
+# Devpost 可放公司/大赛 hackathon project-gallery 页面；也会按 seed_topics 搜索 devpost.com/software。
+devpost_galleries:
+  - https://worldslargesthackathon.devpost.com/project-gallery
+
+# 权重用于机会评分，0-1 之间，不要求总和为 1，脚本会归一化。
+weights:
+  heat: 0.26
+  pain: 0.22
+  opc_fit: 0.22
+  speed_to_mvp: 0.14
+  defensibility: 0.10
+  novelty: 0.06
+
+# solo founder / 业余副业的约束，用于过滤和评分。
+opc_constraints:
+  max_mvp_weeks: 4
+  prefer_b2b: true
+  prefer_low_regulation: true
+  avoid:
+    - clinical diagnosis
+    - regulated finance
+    - hardware manufacturing
+    - weapons
+    - crypto trading
+    - gambling
