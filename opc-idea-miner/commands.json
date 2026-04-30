@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "commands": {
+    "idea": {
+      "description": "挖掘 OPC/solo-founder 产品机会并生成分析报告",
+      "entrypoints": ["im", "web"],
+      "executor": {
+        "command": "python3",
+        "args": ["commands/idea.py"]
+      }
+    }
+  }
+}
