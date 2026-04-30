@@ -1,0 +1,73 @@
+# OPC 创业产品创意分析报告
+
+生成时间：{{ generated_at }}  
+时间窗口：过去 {{ lookback_days }} 天  
+信号数量：{{ signal_count }}  
+去重后机会数：{{ opportunity_count }}
+
+## 1. 执行摘要
+
+本报告从 Product Hunt、Devpost hackathon 项目、Hacker News、GitHub、YC Requests for Startups、Hugging Face 等公开信号中抽取产品创意线索，并按“行业热度、痛点强度、OPC 适配度、MVP 速度、防御性、创意新颖度”综合评分。
+
+最值得优先验证的方向：
+{% for opp in opportunities[:5] %}
+{{ loop.index }}. **{{ opp.title }}** — 综合分 {{ '%.1f'|format(opp.total_score) }}/10；核心理由：{{ opp.why_now }}
+{% endfor %}
+
+## 2. Top 机会排行榜
+
+| 排名 | 机会 | 综合分 | 热度 | 痛点 | OPC适配 | MVP速度 | 证据源 |
+|---:|---|---:|---:|---:|---:|---:|---|
+{% for opp in opportunities %}
+| {{ loop.index }} | {{ opp.title }} | {{ '%.1f'|format(opp.total_score) }} | {{ '%.1f'|format(opp.scores.heat) }} | {{ '%.1f'|format(opp.scores.pain) }} | {{ '%.1f'|format(opp.scores.opc_fit) }} | {{ '%.1f'|format(opp.scores.speed_to_mvp) }} | {{ opp.source_mix }} |
+{% endfor %}
+
+## 3. 产品机会卡片
+
+{% for opp in opportunities %}
+### {{ loop.index }}. {{ opp.title }}
+
+**一句话概念**：{{ opp.one_liner }}
+
+**目标用户**：{{ opp.target_user }}
+
+**高频痛点 / 触发场景**：{{ opp.pain_scenario }}
+
+**为什么现在适合做**：{{ opp.why_now }}
+
+**证据信号**：
+{% for e in opp.evidence[:6] %}
+- [{{ e.title }}]({{ e.url }}) — {{ e.source }}；{{ e.metric_summary }}
+{% endfor %}
+
+**MVP 范围**：
+- 7 天：{{ opp.mvp_7d }}
+- 14 天：{{ opp.mvp_14d }}
+- 30 天：{{ opp.mvp_30d }}
+
+**技术实现建议**：{{ opp.tech_stack }}
+
+**商业化路径**：{{ opp.business_model }}
+
+**关键风险**：{{ opp.risks }}
+
+**验证实验**：{{ opp.validation_plan }}
+
+{% endfor %}
+
+## 4. 原始高信号样本
+
+| 来源 | 标题 | 指标 | URL |
+|---|---|---|---|
+{% for s in top_signals %}
+| {{ s.source }} | {{ s.title }} | {{ s.metric_summary }} | {{ s.url }} |
+{% endfor %}
+
+## 5. 评分口径
+
+- **行业热度**：来源权重 + votes/stars/comments/points 的对数归一化 + 近期性。
+- **痛点强度**：标题/描述中的“节省时间、降低成本、减少错误、合规、替代人工、自动化”等信号。
+- **OPC 适配度**：业余时间、单人可维护、低合规、可用 API/插件/自动化实现、B2B 可收费。
+- **MVP 速度**：是否能在 2-4 周完成可演示版本。
+- **防御性**：数据闭环、工作流嵌入、行业上下文、长期客户迁移成本。
+- **新颖度**：hackathon/新发布/多源同时出现但尚未高度商品化的程度。

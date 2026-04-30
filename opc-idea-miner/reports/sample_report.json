@@ -1,0 +1,568 @@
+{
+  "generated_at": "2026-04-30T14:08:04.471161+00:00",
+  "config": {
+    "lookback_days": 30,
+    "max_per_source": 25,
+    "top_opportunities": 8,
+    "output_language": "zh-CN",
+    "seed_topics": [
+      "ai agent",
+      "workflow automation",
+      "browser automation",
+      "voice agent",
+      "llm eval",
+      "prompt testing",
+      "devtools",
+      "chrome extension",
+      "accessibility",
+      "ecommerce ai",
+      "ai search",
+      "data extraction",
+      "personal productivity"
+    ],
+    "sources": {
+      "hackernews": true,
+      "github": true,
+      "producthunt": true,
+      "devpost": true,
+      "yc_rfs": true,
+      "gdelt": false,
+      "huggingface": true
+    },
+    "devpost_galleries": [
+      "https://worldslargesthackathon.devpost.com/project-gallery"
+    ],
+    "weights": {
+      "heat": 0.26,
+      "pain": 0.22,
+      "opc_fit": 0.22,
+      "speed_to_mvp": 0.14,
+      "defensibility": 0.1,
+      "novelty": 0.06
+    },
+    "opc_constraints": {
+      "max_mvp_weeks": 4,
+      "prefer_b2b": true,
+      "prefer_low_regulation": true,
+      "avoid": [
+        "clinical diagnosis",
+        "regulated finance",
+        "hardware manufacturing",
+        "weapons",
+        "crypto trading",
+        "gambling"
+      ]
+    }
+  },
+  "skipped_sources": [],
+  "signals": [
+    {
+      "source": "devpost",
+      "title": "CallVance",
+      "summary": "Automates AI-powered voice calls to confirm appointments, update statuses in real time, and reduce no-shows.",
+      "url": "https://devpost.com/software/callvance",
+      "created_at": "",
+      "tags": [
+        "hackathon",
+        "winner",
+        "voice agent"
+      ],
+      "metrics": {
+        "winner": true,
+        "likes": 12
+      },
+      "raw": {},
+      "metric_summary": "likes=12, winner",
+      "heat_score": 4.717,
+      "category": "voice_ops"
+    },
+    {
+      "source": "devpost",
+      "title": "ModelMash: Find the Perfect LLM",
+      "summary": "Test hundreds of LLMs for a specific task with prompts and success criteria.",
+      "url": "https://devpost.com/software/modelmash-find-the-perfect-llm",
+      "created_at": "",
+      "tags": [
+        "hackathon",
+        "winner",
+        "llm eval"
+      ],
+      "metrics": {
+        "winner": true,
+        "likes": 12
+      },
+      "raw": {},
+      "metric_summary": "likes=12, winner",
+      "heat_score": 4.717,
+      "category": "llm_eval"
+    },
+    {
+      "source": "devpost",
+      "title": "Mochi - Making hard content enjoyable",
+      "summary": "Chrome extension that adapts web content for users with reading disabilities, ADHD, and dyslexia.",
+      "url": "https://devpost.com/software/mochi-making-hard-content-enjoyable",
+      "created_at": "",
+      "tags": [
+        "hackathon",
+        "accessibility",
+        "chrome extension"
+      ],
+      "metrics": {
+        "winner": true,
+        "likes": 104
+      },
+      "raw": {},
+      "metric_summary": "likes=104, winner",
+      "heat_score": 5.676,
+      "category": "accessibility_edu"
+    },
+    {
+      "source": "devpost",
+      "title": "LookMate – Your virtual fashion companion",
+      "summary": "Try Before You Buy: realistic virtual fitting rooms for online shopping.",
+      "url": "https://devpost.com/software/lookmate",
+      "created_at": "",
+      "tags": [
+        "hackathon",
+        "ecommerce ai"
+      ],
+      "metrics": {
+        "winner": true,
+        "likes": 7
+      },
+      "raw": {},
+      "metric_summary": "likes=7, winner",
+      "heat_score": 4.494,
+      "category": "commerce"
+    },
+    {
+      "source": "yc_rfs",
+      "title": "AI-native companies that sell the service",
+      "summary": "YC is interested in AI-native companies replacing outsourced services such as accounting, tax, audit, compliance and healthcare administration.",
+      "url": "https://www.ycombinator.com/rfs#ai-native-companies-that-sell-the-service",
+      "created_at": "",
+      "tags": [
+        "yc",
+        "ai agent",
+        "service"
+      ],
+      "metrics": {},
+      "raw": {},
+      "metric_summary": "n/a",
+      "heat_score": 2.9,
+      "category": "agent_workflow"
+    },
+    {
+      "source": "yc_rfs",
+      "title": "Company brain and skills file",
+      "summary": "Turn company context into skills files so AI systems can do work safely and consistently.",
+      "url": "https://www.ycombinator.com/rfs#company-brain-and-skills-file",
+      "created_at": "",
+      "tags": [
+        "yc",
+        "knowledge",
+        "skill"
+      ],
+      "metrics": {},
+      "raw": {},
+      "metric_summary": "n/a",
+      "heat_score": 2.9,
+      "category": "knowledge"
+    },
+    {
+      "source": "hackernews",
+      "title": "Show HN: Browser agent that fills forms and extracts structured data",
+      "summary": "A developer tool for automating repetitive browser tasks with human review.",
+      "url": "https://news.ycombinator.com/item?id=sample-browser-agent",
+      "created_at": "",
+      "tags": [
+        "Show HN",
+        "browser automation"
+      ],
+      "metrics": {
+        "points": 123,
+        "comments": 41
+      },
+      "raw": {},
+      "metric_summary": "comments=41, points=123",
+      "heat_score": 6.557,
+      "category": "agent_workflow"
+    },
+    {
+      "source": "github",
+      "title": "example/agent-evals",
+      "summary": "Open-source prompt and tool-call evaluation framework for AI agents.",
+      "url": "https://github.com/example/agent-evals",
+      "created_at": "",
+      "tags": [
+        "llm",
+        "eval",
+        "agent"
+      ],
+      "metrics": {
+        "stars": 850,
+        "forks": 73
+      },
+      "raw": {},
+      "metric_summary": "stars=850, forks=73",
+      "heat_score": 7.557,
+      "category": "llm_eval"
+    },
+    {
+      "source": "producthunt",
+      "title": "OpsPilot for SMBs",
+      "summary": "AI agent that handles repetitive back-office workflows for small businesses.",
+      "url": "https://www.producthunt.com/products/opspilot-for-smbs",
+      "created_at": "",
+      "tags": [
+        "ai",
+        "automation",
+        "smb"
+      ],
+      "metrics": {
+        "votes": 230,
+        "comments": 34
+      },
+      "raw": {},
+      "metric_summary": "votes=230, comments=34",
+      "heat_score": 8.255,
+      "category": "agent_workflow"
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "llm_eval",
+      "title": "LLM/Agent 评测与 Prompt 回归测试台",
+      "total_score": 7.95,
+      "scores": {
+        "heat": 7.08,
+        "pain": 8.12,
+        "opc_fit": 9.0,
+        "speed_to_mvp": 8.5,
+        "defensibility": 7.4,
+        "novelty": 6.8
+      },
+      "source_mix": "github:1, devpost:1",
+      "one_liner": "给正在上线 LLM/Agent 的小团队提供测试集管理、模型对比、回归监控和失败案例分析。",
+      "target_user": "AI SaaS、小型研发团队、客服/销售/文档问答产品团队。",
+      "pain_scenario": "每次换模型或改 prompt 都担心质量退化，人工抽测慢且不可复现。",
+      "why_now": "模型迭代快，agent 工具调用链更复杂；hackathon 项目和 YC 信号都在强调 agent 工作流的可靠性问题。 本次抓取中该方向出现 2 条信号，来源分布：github=1, devpost=1。",
+      "mvp_7d": "上传测试样例 + 调多个模型 + 输出 pass/fail 表格。",
+      "mvp_14d": "加入自动评分器、历史版本对比、CI webhook。",
+      "mvp_30d": "支持工具调用 trace、人工标注、团队权限和月度质量报告。",
+      "tech_stack": "Next.js + FastAPI + LiteLLM/OpenRouter + Postgres + vector store + GitHub Actions integration。",
+      "business_model": "免费层 + 按测试次数/项目数收费；可加企业私有部署。",
+      "risks": "已有开源/平台竞品；需要以更简单的 onboarding 或垂直场景取胜。",
+      "validation_plan": "找 20 个正在做 AI 功能的开发者，帮他们把 30 个测试样例接入 CI，观察留存与付费意愿。",
+      "evidence": [
+        {
+          "source": "github",
+          "title": "example/agent-evals",
+          "summary": "Open-source prompt and tool-call evaluation framework for AI agents.",
+          "url": "https://github.com/example/agent-evals",
+          "created_at": "",
+          "tags": [
+            "llm",
+            "eval",
+            "agent"
+          ],
+          "metrics": {
+            "stars": 850,
+            "forks": 73
+          },
+          "raw": {},
+          "metric_summary": "stars=850, forks=73",
+          "heat_score": 7.557,
+          "category": "llm_eval"
+        },
+        {
+          "source": "devpost",
+          "title": "ModelMash: Find the Perfect LLM",
+          "summary": "Test hundreds of LLMs for a specific task with prompts and success criteria.",
+          "url": "https://devpost.com/software/modelmash-find-the-perfect-llm",
+          "created_at": "",
+          "tags": [
+            "hackathon",
+            "winner",
+            "llm eval"
+          ],
+          "metrics": {
+            "winner": true,
+            "likes": 12
+          },
+          "raw": {},
+          "metric_summary": "likes=12, winner",
+          "heat_score": 4.717,
+          "category": "llm_eval"
+        }
+      ]
+    },
+    {
+      "category": "agent_workflow",
+      "title": "垂直工作流 AI Agent：替代人工执行重复服务",
+      "total_score": 7.8,
+      "scores": {
+        "heat": 7.31,
+        "pain": 8.43,
+        "opc_fit": 8.4,
+        "speed_to_mvp": 7.8,
+        "defensibility": 7.0,
+        "novelty": 6.8
+      },
+      "source_mix": "producthunt:1, hackernews:1, yc_rfs:1",
+      "one_liner": "用一个窄场景 AI Agent 接管客户确认、状态更新、资料整理、表单处理等可重复服务，而不只是给用户一个聊天工具。",
+      "target_user": "有大量重复后台任务的小团队：本地服务商、招聘/房产/物流/教育机构、B2B 服务公司。",
+      "pain_scenario": "创始人或运营每天在多个系统之间复制信息、提醒客户、更新状态；任务频繁但不足以招聘专人。",
+      "why_now": "LLM 工具调用、浏览器自动化和语音/邮件 API 已经足以把单个窄流程做成端到端服务，且 YC 等创业信号正在强调“卖服务而非卖软件”。 本次抓取中该方向出现 3 条信号，来源分布：producthunt=1, hackernews=1, yc_rfs=1。",
+      "mvp_7d": "选一个窄流程，例如预约确认 + Google Sheet/CRM 状态回写，做成可演示脚本。",
+      "mvp_14d": "加入人工审核队列、失败重试、日志面板和 2-3 个真实客户测试。",
+      "mvp_30d": "产品化为多租户微 SaaS，提供模板化工作流、计费和客户 onboarding。",
+      "tech_stack": "Python/FastAPI + Playwright 或 Browserbase + OpenAI/Anthropic 工具调用 + Postgres + Slack/Email/Twilio 集成。",
+      "business_model": "按任务量或每席位收费；先做 done-for-you setup fee，再转月费。",
+      "risks": "通用 agent 平台竞争强；必须选择足够窄、ROI 可量化、失败风险可控的行业流程。",
+      "validation_plan": "找 10 个目标用户访谈，要求他们展示当前 SOP；用半自动脚本替他们跑 1 周，衡量节省小时数与愿付价格。",
+      "evidence": [
+        {
+          "source": "producthunt",
+          "title": "OpsPilot for SMBs",
+          "summary": "AI agent that handles repetitive back-office workflows for small businesses.",
+          "url": "https://www.producthunt.com/products/opspilot-for-smbs",
+          "created_at": "",
+          "tags": [
+            "ai",
+            "automation",
+            "smb"
+          ],
+          "metrics": {
+            "votes": 230,
+            "comments": 34
+          },
+          "raw": {},
+          "metric_summary": "votes=230, comments=34",
+          "heat_score": 8.255,
+          "category": "agent_workflow"
+        },
+        {
+          "source": "hackernews",
+          "title": "Show HN: Browser agent that fills forms and extracts structured data",
+          "summary": "A developer tool for automating repetitive browser tasks with human review.",
+          "url": "https://news.ycombinator.com/item?id=sample-browser-agent",
+          "created_at": "",
+          "tags": [
+            "Show HN",
+            "browser automation"
+          ],
+          "metrics": {
+            "points": 123,
+            "comments": 41
+          },
+          "raw": {},
+          "metric_summary": "comments=41, points=123",
+          "heat_score": 6.557,
+          "category": "agent_workflow"
+        },
+        {
+          "source": "yc_rfs",
+          "title": "AI-native companies that sell the service",
+          "summary": "YC is interested in AI-native companies replacing outsourced services such as accounting, tax, audit, compliance and healthcare administration.",
+          "url": "https://www.ycombinator.com/rfs#ai-native-companies-that-sell-the-service",
+          "created_at": "",
+          "tags": [
+            "yc",
+            "ai agent",
+            "service"
+          ],
+          "metrics": {},
+          "raw": {},
+          "metric_summary": "n/a",
+          "heat_score": 2.9,
+          "category": "agent_workflow"
+        }
+      ]
+    },
+    {
+      "category": "accessibility_edu",
+      "title": "可访问性/学习辅助 Chrome 插件",
+      "total_score": 7.18,
+      "scores": {
+        "heat": 6.15,
+        "pain": 7.85,
+        "opc_fit": 8.0,
+        "speed_to_mvp": 8.2,
+        "defensibility": 5.8,
+        "novelty": 6.1
+      },
+      "source_mix": "devpost:1",
+      "one_liner": "把难读网页实时改写、分块、朗读或练习化，帮助 ADHD/阅读障碍/非母语用户。",
+      "target_user": "学生、知识工作者、阅读障碍用户、家长/老师。",
+      "pain_scenario": "长网页和专业内容难以持续阅读，用户需要即时降噪、摘要和互动式理解。",
+      "why_now": "浏览器端 LLM 能力和网页改写体验成熟，Devpost hackathon 已出现面向 ADHD/阅读障碍的内容适配项目。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。",
+      "mvp_7d": "Chrome 插件：选中文本后生成易读版 + 关键点。",
+      "mvp_14d": "加入分级阅读、朗读、测验卡片和用户偏好。",
+      "mvp_30d": "做家长/教师模式，输出学习报告和可分享材料。",
+      "tech_stack": "Chrome Extension + local/remote LLM + Readability parser + TTS + Supabase。",
+      "business_model": "个人订阅、学校/老师小团队许可、无障碍工具包。",
+      "risks": "消费者付费弱；需找到强场景，如考试备考、企业培训或无障碍合规。",
+      "validation_plan": "招募 20 名目标用户试读同一材料，比较完成率、理解分数和持续使用意愿。",
+      "evidence": [
+        {
+          "source": "devpost",
+          "title": "Mochi - Making hard content enjoyable",
+          "summary": "Chrome extension that adapts web content for users with reading disabilities, ADHD, and dyslexia.",
+          "url": "https://devpost.com/software/mochi-making-hard-content-enjoyable",
+          "created_at": "",
+          "tags": [
+            "hackathon",
+            "accessibility",
+            "chrome extension"
+          ],
+          "metrics": {
+            "winner": true,
+            "likes": 104
+          },
+          "raw": {},
+          "metric_summary": "likes=104, winner",
+          "heat_score": 5.676,
+          "category": "accessibility_edu"
+        }
+      ]
+    },
+    {
+      "category": "voice_ops",
+      "title": "AI 语音外呼/预约确认微 SaaS",
+      "total_score": 7.07,
+      "scores": {
+        "heat": 5.19,
+        "pain": 9.3,
+        "opc_fit": 7.6,
+        "speed_to_mvp": 7.0,
+        "defensibility": 6.6,
+        "novelty": 6.1
+      },
+      "source_mix": "devpost:1",
+      "one_liner": "面向一个垂直行业提供 AI 电话确认、改期、状态同步和异常转人工。",
+      "target_user": "牙科/美容/维修/教育咨询/物流调度等依赖电话确认的 SMB。",
+      "pain_scenario": "人工反复拨打确认电话，漏打导致 no-show 或订单延误，且状态无法实时回写。",
+      "why_now": "语音模型、实时转写和电话 API 成熟；hackathon 项目中已经出现语音确认 + dashboard + CSV 上传的组合。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。",
+      "mvp_7d": "做 CSV 导入 + 单轮确认外呼 + 结果写回表格。",
+      "mvp_14d": "加入多轮对话、短信补充、异常转人工、通话摘要。",
+      "mvp_30d": "接入日历/CRM，按行业模板沉淀话术和合规提示。",
+      "tech_stack": "Twilio/Vapi/Retell + ASR/TTS + LLM function calling + FastAPI + Postgres + Stripe。",
+      "business_model": "按通话分钟、成功确认数或门店月费收费。",
+      "risks": "电话合规、用户信任、噪声环境、号码信誉；不要先碰高度监管场景。",
+      "validation_plan": "拿 3 家本地服务商的真实预约表做 concierge test，比较 no-show 降低与人工时间节省。",
+      "evidence": [
+        {
+          "source": "devpost",
+          "title": "CallVance",
+          "summary": "Automates AI-powered voice calls to confirm appointments, update statuses in real time, and reduce no-shows.",
+          "url": "https://devpost.com/software/callvance",
+          "created_at": "",
+          "tags": [
+            "hackathon",
+            "winner",
+            "voice agent"
+          ],
+          "metrics": {
+            "winner": true,
+            "likes": 12
+          },
+          "raw": {},
+          "metric_summary": "likes=12, winner",
+          "heat_score": 4.717,
+          "category": "voice_ops"
+        }
+      ]
+    },
+    {
+      "category": "commerce",
+      "title": "电商售前导购/试穿/商品内容自动化",
+      "total_score": 6.61,
+      "scores": {
+        "heat": 4.96,
+        "pain": 7.4,
+        "opc_fit": 7.7,
+        "speed_to_mvp": 7.2,
+        "defensibility": 6.2,
+        "novelty": 6.1
+      },
+      "source_mix": "devpost:1",
+      "one_liner": "帮助小电商把商品图、尺码、问答、导购和个性化推荐自动化。",
+      "target_user": "Shopify/独立站卖家、小品牌、直播/社媒电商运营。",
+      "pain_scenario": "商品内容维护、售前问答、尺码推荐和退货原因分析都靠人工，低客单时成本不可控。",
+      "why_now": "多模态模型让虚拟试穿、图文生成和个性化导购的 MVP 成本下降。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。",
+      "mvp_7d": "接一个 Shopify 店铺，自动生成商品 FAQ 和售前聊天组件。",
+      "mvp_14d": "加入尺码/风格问答、退货原因收集、客服转人工。",
+      "mvp_30d": "支持商品图改造、A/B 文案和转化率报告。",
+      "tech_stack": "Shopify app + Next.js + image model API + vector search + analytics。",
+      "business_model": "按店铺月费 + 用量计费；可加 GMV 阶梯。",
+      "risks": "同质化强；必须绑定明确指标，如退货率下降或转化率提升。",
+      "validation_plan": "找 5 个小店接入 FAQ/导购，跑 2 周，看客服工单减少和转化变化。",
+      "evidence": [
+        {
+          "source": "devpost",
+          "title": "LookMate – Your virtual fashion companion",
+          "summary": "Try Before You Buy: realistic virtual fitting rooms for online shopping.",
+          "url": "https://devpost.com/software/lookmate",
+          "created_at": "",
+          "tags": [
+            "hackathon",
+            "ecommerce ai"
+          ],
+          "metrics": {
+            "winner": true,
+            "likes": 7
+          },
+          "raw": {},
+          "metric_summary": "likes=7, winner",
+          "heat_score": 4.494,
+          "category": "commerce"
+        }
+      ]
+    },
+    {
+      "category": "knowledge",
+      "title": "团队知识库 → 可执行 SOP/Skill 的公司大脑",
+      "total_score": 6.52,
+      "scores": {
+        "heat": 3.37,
+        "pain": 7.8,
+        "opc_fit": 8.3,
+        "speed_to_mvp": 7.5,
+        "defensibility": 7.6,
+        "novelty": 4.9
+      },
+      "source_mix": "yc_rfs:1",
+      "one_liner": "把公司文档、Slack、Drive、SOP 转成 agent 可调用的结构化 skill 和问答系统。",
+      "target_user": "10-200 人团队、外包/咨询公司、快速增长的创业公司。",
+      "pain_scenario": "知识散落在文档、聊天和人脑中，新人 onboarding 慢，AI agent 缺少可靠上下文。",
+      "why_now": "YC RFS 明确提到让公司对 AI 可读、把知识转成 skills file 的需求。 本次抓取中该方向出现 1 条信号，来源分布：yc_rfs=1。",
+      "mvp_7d": "接 Notion/Google Drive，抽取 SOP 并生成 Markdown skill。",
+      "mvp_14d": "加入变更检测、来源引用、审核流程。",
+      "mvp_30d": "提供 agent API、权限控制和团队知识健康报告。",
+      "tech_stack": "Connectors + embeddings/RAG + structured extraction + MCP/CLI skill export + admin UI。",
+      "business_model": "按连接器/用户数收费，初期可做 paid implementation。",
+      "risks": "权限与安全要求高；RAG 产品拥挤，需突出“可执行 SOP/skill”而非普通问答。",
+      "validation_plan": "为 3 家小团队把 20 条 SOP 转成可执行模板，追踪新人完成任务时间。",
+      "evidence": [
+        {
+          "source": "yc_rfs",
+          "title": "Company brain and skills file",
+          "summary": "Turn company context into skills files so AI systems can do work safely and consistently.",
+          "url": "https://www.ycombinator.com/rfs#company-brain-and-skills-file",
+          "created_at": "",
+          "tags": [
+            "yc",
+            "knowledge",
+            "skill"
+          ],
+          "metrics": {},
+          "raw": {},
+          "metric_summary": "n/a",
+          "heat_score": 2.9,
+          "category": "knowledge"
+        }
+      ]
+    }
+  ]
+}
