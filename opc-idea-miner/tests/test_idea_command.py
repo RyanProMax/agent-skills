@@ -57,10 +57,68 @@ class IdeaCommandTests(unittest.TestCase):
         self.assertIn("AI agent for local services", reply["content"])
         self.assertIn("python scripts/opc_idea_miner.py run", reply["content"])
         self.assertIn("--config config.example.yaml", reply["content"])
-        self.assertIn("--out reports/idea_report.md", reply["content"])
-        self.assertIn("--json-out reports/idea_report.json", reply["content"])
-        self.assertIn("top 3", reply["content"])
+        self.assertIn("--json-stdout", reply["content"])
+        self.assertIn("--no-report", reply["content"])
+        self.assertIn("--topic", reply["content"])
+        self.assertIn("Top 3", reply["content"])
 
 
 if __name__ == "__main__":
     unittest.main()
+
+class IdeaCliJsonModeTests(unittest.TestCase):
+    def test_cli_outputs_strict_json_without_report_files_and_injects_topic(self) -> None:
+        result = subprocess.run(
+            [
+                str(SKILL_DIR / ".venv" / "bin" / "python"),
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--sample",
+                "--topic",
+                "AI agent for local services",
+                "--json-stdout",
+                "--no-report",
+                "--top",
+                "3",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertEqual(payload["schema"], "opc_idea_miner.v1")
+        self.assertEqual(payload["focus"], "AI agent for local services")
+        self.assertIn("AI agent for local services", payload["config"]["seed_topics"][:1])
+        self.assertLessEqual(len(payload["top_opportunities"]), 3)
+        self.assertIn("skipped_sources", payload)
+        self.assertIn("summary_contract", payload)
+        self.assertFalse((SKILL_DIR / "reports" / "opc_ideas.md").exists())
+
+    def test_idea_executor_uses_channel_reply_json_contract(self) -> None:
+        payload = {
+            "version": 1,
+            "command": "idea",
+            "entrypoint": "im",
+            "argsText": "AI agent for local services",
+            "workspace": {"name": "主工作区", "folder": "main"},
+            "issuedAt": "2026-05-02T04:34:45.898Z",
+        }
+
+        result = subprocess.run(
+            [sys.executable, str(IDEA_EXECUTOR)],
+            cwd=SKILL_DIR,
+            input=json.dumps(payload),
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        reply = json.loads(result.stdout)["reply"]
+
+        self.assertIn("--json-stdout", reply["content"])
+        self.assertIn("--no-report", reply["content"])
+        self.assertIn("--topic", reply["content"])
+        self.assertNotIn("--out reports/idea_report.md", reply["content"])
+        self.assertIn("💡 机会", reply["content"])
+        self.assertIn("🧪 7天验证", reply["content"])
