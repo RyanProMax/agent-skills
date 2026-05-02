@@ -24,7 +24,7 @@ Use this skill when the user wants to discover side-business / one-person-compan
 
 ## Slash command
 
-`/idea [optional focus]` runs this skill through Cli Claw skill-command dispatch. It rewrites the slash command into an isolated `assistant_prompt` task that instructs the agent to run `scripts/opc_idea_miner.py`, then return the generated report path and top 3 ideas.
+`/idea [optional focus]` runs this skill through Cli Claw skill-command dispatch. It rewrites the slash command into an isolated `assistant_prompt` task that instructs the agent to run `scripts/opc_idea_miner.py` with `--topic`, `--json-stdout`, and `--no-report`; the agent must summarize the strict JSON into a channel reply using the fixed narrow-card template instead of returning local report files.
 
 ## One-command CLI
 
@@ -55,7 +55,7 @@ python scripts/opc_idea_miner.py run --sample --out reports/sample_report.md --j
 
 ## Agent operating notes
 
-- If the user asks for a report, run the CLI and return the generated Markdown file path plus the top 3 ideas.
+- If the user invokes `/idea`, run the JSON stdout flow and reply in-channel with the fixed template; do not return local report paths.
 - If Product Hunt credentials are missing, keep going with other sources and mention the skipped source.
 - Avoid scraping sources that forbid it; prefer official APIs when available.
 - Treat scoring as a prioritization heuristic, not investment advice.

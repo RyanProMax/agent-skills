@@ -1296,6 +1296,94 @@ def opportunity_to_dict(opp: Opportunity) -> Dict[str, Any]:
     }
 
 
+def build_json_payload(
+    signals: Sequence[Signal],
+    opportunities: Sequence[Opportunity],
+    skipped: Sequence[str],
+    cfg: Dict[str, Any],
+    focus: str,
+) -> Dict[str, Any]:
+    return {
+        "schema": "opc_idea_miner.v1",
+        "generated_at": now_utc().isoformat(),
+        "focus": focus,
+        "config": cfg,
+        "skipped_sources": list(skipped),
+        "signals": [signal_to_dict(s) for s in signals],
+        "opportunities": [opportunity_to_dict(o) for o in opportunities],
+    }
+
+
+def compact_evidence(signal: Signal) -> Dict[str, Any]:
+    return {
+        "source": signal.source,
+        "title": signal.title,
+        "url": signal.url,
+        "created_at": signal.created_at,
+        "heat_score": round(signal_heat(signal), 2),
+        "summary": signal.summary[:240],
+    }
+
+
+def build_channel_json_payload(
+    signals: Sequence[Signal],
+    opportunities: Sequence[Opportunity],
+    skipped: Sequence[str],
+    cfg: Dict[str, Any],
+    focus: str,
+) -> Dict[str, Any]:
+    top_limit = int(cfg.get("top_opportunities", 8) or 8)
+    return {
+        "schema": "opc_idea_miner.v1",
+        "generated_at": now_utc().isoformat(),
+        "focus": focus,
+        "config": {
+            "lookback_days": cfg.get("lookback_days"),
+            "max_per_source": cfg.get("max_per_source"),
+            "top_opportunities": top_limit,
+            "seed_topics": cfg.get("seed_topics", []),
+            "sources": cfg.get("sources", {}),
+        },
+        "skipped_sources": list(skipped),
+        "top_opportunities": [
+            {
+                "rank": idx,
+                "title": opp.title,
+                "score": round(opp.total_score, 2),
+                "source_mix": opp.source_mix,
+                "target_user": opp.target_user,
+                "pain_scenario": opp.pain_scenario,
+                "why_now": opp.why_now,
+                "mvp_7d": opp.mvp_7d,
+                "mvp_14d": opp.mvp_14d,
+                "business_model": opp.business_model,
+                "risks": opp.risks,
+                "validation_plan": opp.validation_plan,
+                "evidence": [compact_evidence(s) for s in opp.evidence[:3]],
+            }
+            for idx, opp in enumerate(opportunities[:top_limit], 1)
+        ],
+        "summary_contract": {
+            "language": "zh-CN",
+            "channel": "feishu-friendly narrow card",
+            "template_fields": [
+                "💡 机会",
+                "👤 用户/痛点",
+                "🔥 信号/为什么现在",
+                "🧪 7天验证",
+                "⚠️ 风险",
+            ],
+            "rules": [
+                "只输出 channel 回复，不引用本地文件路径",
+                "先给 1-2 条总览结论，再列 top 3",
+                "每个 idea 最多 5 行，避免 Markdown 宽表格",
+                "必须基于 top_opportunities 和 evidence，不得新增 JSON 中没有的机会",
+                "skipped_sources 非空时在末尾用一行说明",
+            ],
+        },
+    }
+
+
 def write_outputs(
     report: str,
     signals: Sequence[Signal],
@@ -1304,22 +1392,26 @@ def write_outputs(
     cfg: Dict[str, Any],
     out_path: str,
     json_out_path: Optional[str],
+    focus: str = "",
 ) -> None:
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(report, encoding="utf-8")
 
     if json_out_path:
-        payload = {
-            "generated_at": now_utc().isoformat(),
-            "config": cfg,
-            "skipped_sources": list(skipped),
-            "signals": [signal_to_dict(s) for s in signals],
-            "opportunities": [opportunity_to_dict(o) for o in opportunities],
-        }
+        payload = build_json_payload(signals, opportunities, skipped, cfg, focus)
         jout = Path(json_out_path)
         jout.parent.mkdir(parents=True, exist_ok=True)
         jout.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def inject_topic_seed_topics(cfg: Dict[str, Any], topics: Sequence[str]) -> str:
+    cleaned = [topic.strip() for topic in topics if topic and topic.strip()]
+    if not cleaned:
+        return ""
+    existing = list(cfg.get("seed_topics", []))
+    cfg["seed_topics"] = list(dict.fromkeys(cleaned + existing))
+    return " | ".join(cleaned)
 
 
 def print_summary(opportunities: Sequence[Opportunity], skipped: Sequence[str], out_path: str, json_out_path: Optional[str]) -> None:
@@ -1345,6 +1437,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--days", type=int, default=None, help="Override lookback_days")
     run.add_argument("--max-per-source", type=int, default=None, help="Override max_per_source")
     run.add_argument("--top", type=int, default=None, help="Override top_opportunities")
+    run.add_argument("--topic", action="append", default=[], help="Prepend a focus topic to seed_topics; may be repeated")
+    run.add_argument("--json-stdout", action="store_true", help="Print strict channel JSON to stdout")
+    run.add_argument("--no-report", action="store_true", help="Do not write Markdown or JSON report files")
     run.add_argument("--sample", action="store_true", help="Use built-in sample signals; no network")
     run.add_argument("--verbose", action="store_true", help="Print collector diagnostics")
     return parser
@@ -1364,13 +1459,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         cfg["max_per_source"] = args.max_per_source
     if args.top is not None:
         cfg["top_opportunities"] = args.top
+    focus = inject_topic_seed_topics(cfg, args.topic)
 
     signals, skipped = collect_all(cfg, sample=args.sample, verbose=args.verbose)
     signals = dedupe_signals(signals)
     opportunities = build_opportunities(signals, cfg)
-    report = render_report(signals, opportunities, cfg)
-    write_outputs(report, signals, opportunities, skipped, cfg, args.out, args.json_out)
-    print_summary(opportunities, skipped, args.out, args.json_out)
+    if args.json_stdout:
+        payload = build_channel_json_payload(signals, opportunities, skipped, cfg, focus)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+
+    if not args.no_report:
+        report = render_report(signals, opportunities, cfg)
+        write_outputs(report, signals, opportunities, skipped, cfg, args.out, args.json_out, focus)
+        if not args.json_stdout:
+            print_summary(opportunities, skipped, args.out, args.json_out)
     return 0
 
 
