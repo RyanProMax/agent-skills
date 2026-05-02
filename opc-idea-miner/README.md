@@ -32,6 +32,7 @@ python scripts/opc_idea_miner.py run --sample --out reports/sample_report.md --j
 
 - Markdown report: fixed template for product opportunity analysis
 - JSON file: normalized raw signals, clustered opportunities, skipped sources, config snapshot
+- Channel JSON (`--json-stdout`): strict `opc_idea_miner.v1` payload with `channel_markdown`, `data_quality_note`, evidence strength labels, and focus-aware Top 3 ranking
 
 ## Notes
 

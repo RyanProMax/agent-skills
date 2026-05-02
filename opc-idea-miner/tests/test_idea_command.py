@@ -151,6 +151,70 @@ class IdeaCliJsonModeTests(unittest.TestCase):
         self.assertIn("💡 机会", reply["content"])
         self.assertIn("🧪 7天验证", reply["content"])
 
+
+    def test_cli_channel_payload_includes_markdown_quality_and_chinese_focus(self) -> None:
+        result = subprocess.run(
+            [
+                TEST_PYTHON,
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--sample",
+                "--topic",
+                "教育 Chrome 插件",
+                "--json-stdout",
+                "--no-report",
+                "--top",
+                "3",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertIn("channel_markdown", payload)
+        self.assertIn("**OPC 产品机会｜教育 Chrome 插件**", payload["channel_markdown"])
+        self.assertIn("data_quality", payload)
+        self.assertIn("overall", payload["data_quality"])
+        self.assertIn("data_quality_note", payload)
+        self.assertIn("evidence_quality", payload["top_opportunities"][0])
+        self.assertIn("evidence_strength", payload["top_opportunities"][0]["evidence"][0])
+        self.assertGreater(payload["top_opportunities"][0]["focus_relevance"], 0)
+        self.assertTrue(
+            any(
+                "Chrome" in opportunity["title"] or "插件" in opportunity["title"]
+                for opportunity in payload["top_opportunities"]
+            )
+        )
+
+    def test_cli_respects_global_time_budget_when_sources_are_enabled(self) -> None:
+        result = subprocess.run(
+            [
+                TEST_PYTHON,
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--config",
+                "config.example.yaml",
+                "--topic",
+                "developer tools",
+                "--json-stdout",
+                "--no-report",
+                "--top",
+                "3",
+                "--global-timeout",
+                "0.001",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertIn("time_budget_exceeded", payload["skipped_sources"])
+        self.assertIn("data_quality_note", payload)
+
     def test_topic_relevance_can_change_top_rank(self) -> None:
         result = subprocess.run(
             [

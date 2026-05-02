@@ -1,10 +1,14 @@
 {
-  "generated_at": "2026-04-30T14:08:04.471161+00:00",
+  "schema": "opc_idea_miner.v1",
+  "generated_at": "2026-05-02T15:49:21.303492+00:00",
+  "focus": "",
   "config": {
     "lookback_days": 30,
     "max_per_source": 25,
     "top_opportunities": 8,
     "output_language": "zh-CN",
+    "request_timeout_seconds": 10,
+    "global_timeout_seconds": 60,
     "seed_topics": [
       "ai agent",
       "workflow automation",
