@@ -1325,6 +1325,55 @@ def compact_evidence(signal: Signal) -> Dict[str, Any]:
     }
 
 
+def focus_tokens(focus: str) -> List[str]:
+    return [
+        token
+        for token in re.findall(r"[a-z0-9][a-z0-9+_-]{2,}", focus.lower())
+        if token not in {"for", "and", "the", "with"}
+    ]
+
+
+def focus_relevance_score(opp: Opportunity, focus: str) -> float:
+    tokens = focus_tokens(focus)
+    if not tokens:
+        return 0.0
+    text_parts = [
+        opp.category,
+        opp.title,
+        opp.one_liner,
+        opp.target_user,
+        opp.pain_scenario,
+        opp.why_now,
+        opp.mvp_7d,
+        opp.mvp_14d,
+        opp.mvp_30d,
+        opp.business_model,
+        opp.risks,
+        opp.validation_plan,
+    ]
+    for signal in opp.evidence[:10]:
+        text_parts.extend([signal.title, signal.summary, " ".join(signal.tags)])
+    haystack = " ".join(text_parts).lower()
+    matched = sum(1 for token in dict.fromkeys(tokens) if token in haystack)
+    return matched / max(len(set(tokens)), 1)
+
+
+def rank_opportunities_for_focus(
+    opportunities: Sequence[Opportunity],
+    focus: str,
+) -> List[Opportunity]:
+    if not focus.strip():
+        return list(opportunities)
+    return sorted(
+        opportunities,
+        key=lambda opp: (
+            opp.total_score + min(2.0, focus_relevance_score(opp, focus) * 2.0),
+            opp.total_score,
+        ),
+        reverse=True,
+    )
+
+
 def build_channel_json_payload(
     signals: Sequence[Signal],
     opportunities: Sequence[Opportunity],
@@ -1350,6 +1399,7 @@ def build_channel_json_payload(
                 "rank": idx,
                 "title": opp.title,
                 "score": round(opp.total_score, 2),
+                "focus_relevance": round(focus_relevance_score(opp, focus), 3),
                 "source_mix": opp.source_mix,
                 "target_user": opp.target_user,
                 "pain_scenario": opp.pain_scenario,
@@ -1361,7 +1411,7 @@ def build_channel_json_payload(
                 "validation_plan": opp.validation_plan,
                 "evidence": [compact_evidence(s) for s in opp.evidence[:3]],
             }
-            for idx, opp in enumerate(opportunities[:top_limit], 1)
+            for idx, opp in enumerate(rank_opportunities_for_focus(opportunities, focus)[:top_limit], 1)
         ],
         "summary_contract": {
             "language": "zh-CN",

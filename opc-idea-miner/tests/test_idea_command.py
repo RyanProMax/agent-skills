@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import unittest
@@ -10,6 +11,7 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parents[1]
 COMMANDS_JSON = SKILL_DIR / "commands.json"
 IDEA_EXECUTOR = SKILL_DIR / "commands" / "idea.py"
+TEST_PYTHON = os.environ.get("OPC_IDEA_MINER_TEST_PYTHON", sys.executable)
 
 
 class IdeaCommandTests(unittest.TestCase):
@@ -62,15 +64,41 @@ class IdeaCommandTests(unittest.TestCase):
         self.assertIn("--topic", reply["content"])
         self.assertIn("Top 3", reply["content"])
 
+    def test_direct_file_execution_discovers_cli_json_tests(self) -> None:
+        if os.environ.get("OPC_IDEA_MINER_DIRECT_RUN_CHECK") == "1":
+            return
 
-if __name__ == "__main__":
-    unittest.main()
+        env = {**os.environ, "OPC_IDEA_MINER_DIRECT_RUN_CHECK": "1"}
+        result = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve()), "-v"],
+            cwd=SKILL_DIR,
+            env=env,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+
+        self.assertIn("test_cli_outputs_strict_json_without_report_files_and_injects_topic", result.stderr)
+
+    def test_executor_uses_requirements_hash_cache_path(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(IDEA_EXECUTOR)],
+            cwd=SKILL_DIR,
+            input=json.dumps({"argsText": "AI agent"}),
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        content = json.loads(result.stdout)["reply"]["content"]
+
+        self.assertIn("cli-claw-opc-idea-miner-venv-", content)
+
 
 class IdeaCliJsonModeTests(unittest.TestCase):
     def test_cli_outputs_strict_json_without_report_files_and_injects_topic(self) -> None:
         result = subprocess.run(
             [
-                str(SKILL_DIR / ".venv" / "bin" / "python"),
+                TEST_PYTHON,
                 str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
                 "run",
                 "--sample",
@@ -122,3 +150,30 @@ class IdeaCliJsonModeTests(unittest.TestCase):
         self.assertNotIn("--out reports/idea_report.md", reply["content"])
         self.assertIn("💡 机会", reply["content"])
         self.assertIn("🧪 7天验证", reply["content"])
+
+    def test_topic_relevance_can_change_top_rank(self) -> None:
+        result = subprocess.run(
+            [
+                TEST_PYTHON,
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--sample",
+                "--topic",
+                "accessibility Chrome extension",
+                "--json-stdout",
+                "--no-report",
+                "--top",
+                "3",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertIn("Chrome", payload["top_opportunities"][0]["title"])
+
+
+if __name__ == "__main__":
+    unittest.main()
