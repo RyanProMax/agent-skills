@@ -215,6 +215,64 @@ class IdeaCliJsonModeTests(unittest.TestCase):
         self.assertIn("time_budget_exceeded", payload["skipped_sources"])
         self.assertIn("data_quality_note", payload)
 
+
+    def test_quality_fixtures_rank_chinese_focus_topics(self) -> None:
+        cases = [
+            ("教育 SaaS", "可访问性/学习辅助 Chrome 插件"),
+            ("AI 销售 CRM", "垂直工作流 AI Agent"),
+            ("出海工具", "开发者效率工具"),
+            ("电商导购", "电商售前导购"),
+        ]
+
+        for topic, expected_title_part in cases:
+            with self.subTest(topic=topic):
+                result = subprocess.run(
+                    [
+                        TEST_PYTHON,
+                        str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                        "run",
+                        "--sample",
+                        "--topic",
+                        topic,
+                        "--json-stdout",
+                        "--no-report",
+                        "--top",
+                        "3",
+                    ],
+                    cwd=SKILL_DIR,
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                )
+                payload = json.loads(result.stdout)
+
+                self.assertIn(expected_title_part, payload["top_opportunities"][0]["title"])
+                self.assertGreater(payload["top_opportunities"][0]["focus_relevance"], 0)
+
+    def test_weak_data_does_not_force_three_opportunities(self) -> None:
+        result = subprocess.run(
+            [
+                TEST_PYTHON,
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--empty-sample",
+                "--json-stdout",
+                "--no-report",
+                "--top",
+                "3",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertEqual(payload["data_quality"]["overall"], "weak")
+        self.assertEqual(payload["top_opportunities"], [])
+        self.assertIn("当前数据不足", payload["channel_markdown"])
+        self.assertIn("建议放宽方向", payload["channel_markdown"])
+
     def test_topic_relevance_can_change_top_rank(self) -> None:
         result = subprocess.run(
             [

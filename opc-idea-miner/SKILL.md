@@ -56,6 +56,7 @@ python scripts/opc_idea_miner.py run --sample --out reports/sample_report.md --j
 ## Agent operating notes
 
 - If the user invokes `/idea`, run the JSON stdout flow and reply in-channel with `channel_markdown`; do not return local report paths.
+- 中文 focus（如 `教育 SaaS`、`AI 销售 CRM`、`出海工具`、`电商导购`）应影响 Top 3 排序；弱数据时保守说明数据不足，不要硬凑机会。
 - If Product Hunt credentials are missing, keep going with other sources and mention the skipped source.
 - Avoid scraping sources that forbid it; prefer official APIs when available.
 - Treat scoring as a prioritization heuristic, not investment advice.

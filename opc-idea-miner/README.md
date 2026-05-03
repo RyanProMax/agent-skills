@@ -33,6 +33,7 @@ python scripts/opc_idea_miner.py run --sample --out reports/sample_report.md --j
 - Markdown report: fixed template for product opportunity analysis
 - JSON file: normalized raw signals, clustered opportunities, skipped sources, config snapshot
 - Channel JSON (`--json-stdout`): strict `opc_idea_miner.v1` payload with `channel_markdown`, `data_quality_note`, evidence strength labels, and focus-aware Top 3 ranking
+- Focus-aware ranking supports Chinese mixed topics such as `教育 SaaS`, `AI 销售 CRM`, `出海工具`, and `电商导购`; weak/empty data returns a conservative “data insufficient” reply instead of forced ideas.
 
 ## Notes
 

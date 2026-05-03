@@ -125,6 +125,26 @@ SOURCE_WEIGHTS = {
     "sample": 0.50,
 }
 
+FOCUS_CATEGORY_TERMS: Dict[str, List[str]] = {
+    "accessibility_edu": [
+        "教育", "教培", "学习", "学生", "老师", "课程", "阅读", "chrome", "插件",
+        "extension", "adhd", "dyslexia", "accessibility",
+    ],
+    "agent_workflow": [
+        "销售", "获客", "crm", "客户", "客服", "运营", "本地服务", "smb",
+        "local services", "workflow", "automation",
+    ],
+    "devtools": [
+        "出海", "开发者", "开发", "代码", "github", "issue", "review", "docs",
+        "devtools", "developer", "工具", "tool",
+    ],
+    "commerce": [
+        "电商", "导购", "商品", "购物", "零售", "试穿", "ecommerce", "shopify",
+    ],
+    "voice_ops": ["语音", "外呼", "电话", "预约", "no-show", "call", "voice"],
+    "llm_eval": ["评测", "测试", "prompt", "eval", "evaluation", "回归"],
+}
+
 CATEGORY_META: Dict[str, Dict[str, Any]] = {
     "agent_workflow": {
         "title": "垂直工作流 AI Agent：替代人工执行重复服务",
@@ -1022,6 +1042,14 @@ def sample_signals() -> List[Signal]:
             metrics={"stars": 850, "forks": 73},
         ),
         Signal(
+            source="github",
+            title="example/repo-issue-copilot",
+            summary="Developer tool that summarizes GitHub issues, links relevant docs, and drafts code review checklists for global indie teams.",
+            url="https://github.com/example/repo-issue-copilot",
+            tags=["devtools", "github", "issue", "docs"],
+            metrics={"stars": 640, "forks": 58},
+        ),
+        Signal(
             source="producthunt",
             title="OpsPilot for SMBs",
             summary="AI agent that handles repetitive back-office workflows for small businesses.",
@@ -1034,6 +1062,8 @@ def sample_signals() -> List[Signal]:
 
 def collect_all(cfg: Dict[str, Any], sample: bool = False, verbose: bool = False) -> Tuple[List[Signal], List[str]]:
     if sample:
+        if cfg.get("empty_sample"):
+            return [], ["empty_sample"]
         return sample_signals(), []
 
     since = now_utc() - timedelta(days=int(cfg.get("lookback_days", 30)))
@@ -1244,7 +1274,7 @@ def build_opportunities(signals: Sequence[Signal], cfg: Dict[str, Any]) -> List[
         )
 
     opportunities.sort(key=lambda o: o.total_score, reverse=True)
-    return opportunities[: int(cfg.get("top_opportunities", 8))]
+    return opportunities
 
 
 def default_template_text() -> str:
@@ -1466,6 +1496,20 @@ def focus_tokens(focus: str) -> List[str]:
         if token not in {"for", "and", "the", "with"}
     ]
 
+def focus_category_boost(category: str, focus: str) -> float:
+    haystack = focus.lower()
+    terms = FOCUS_CATEGORY_TERMS.get(category, [])
+    if not haystack or not terms:
+        return 0.0
+    matches = 0
+    for term in terms:
+        if term.lower() in haystack:
+            matches += 1
+    if matches == 0:
+        return 0.0
+    return min(1.0, 0.55 + matches * 0.18)
+
+
 def focus_relevance_score(opp: Opportunity, focus: str) -> float:
     tokens = focus_tokens(focus)
     if not tokens:
@@ -1488,7 +1532,8 @@ def focus_relevance_score(opp: Opportunity, focus: str) -> float:
         text_parts.extend([signal.title, signal.summary, " ".join(signal.tags)])
     haystack = " ".join(text_parts).lower()
     matched = sum(1 for token in tokens if token in haystack)
-    return matched / max(len(tokens), 1)
+    text_score = matched / max(len(tokens), 1)
+    return max(text_score, focus_category_boost(opp.category, focus))
 
 
 def rank_opportunities_for_focus(
@@ -1500,8 +1545,9 @@ def rank_opportunities_for_focus(
     return sorted(
         opportunities,
         key=lambda opp: (
-            opp.total_score + min(3.0, focus_relevance_score(opp, focus) * 3.0),
+            focus_category_boost(opp.category, focus),
             focus_relevance_score(opp, focus),
+            opp.total_score + min(5.0, focus_relevance_score(opp, focus) * 5.0),
             opp.total_score,
         ),
         reverse=True,
@@ -1645,6 +1691,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--json-stdout", action="store_true", help="Print strict channel JSON to stdout")
     run.add_argument("--no-report", action="store_true", help="Do not write Markdown or JSON report files")
     run.add_argument("--sample", action="store_true", help="Use built-in sample signals; no network")
+    run.add_argument("--empty-sample", action="store_true", help="Use no signals; no network, for weak-data output checks")
     run.add_argument("--verbose", action="store_true", help="Print collector diagnostics")
     return parser
 
@@ -1667,11 +1714,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         cfg["global_timeout_seconds"] = args.global_timeout
     if args.request_timeout is not None:
         cfg["request_timeout_seconds"] = args.request_timeout
+    if args.empty_sample:
+        cfg["empty_sample"] = True
     global REQUEST_TIMEOUT_SECONDS
     REQUEST_TIMEOUT_SECONDS = float(cfg.get("request_timeout_seconds", REQUEST_TIMEOUT_SECONDS) or REQUEST_TIMEOUT_SECONDS)
     focus = inject_topic_seed_topics(cfg, args.topic)
 
-    signals, skipped = collect_all(cfg, sample=args.sample, verbose=args.verbose)
+    signals, skipped = collect_all(cfg, sample=args.sample or args.empty_sample, verbose=args.verbose)
     signals = dedupe_signals(signals)
     opportunities = build_opportunities(signals, cfg)
     if args.json_stdout:

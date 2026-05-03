@@ -1,6 +1,6 @@
 {
   "schema": "opc_idea_miner.v1",
-  "generated_at": "2026-05-02T15:49:21.303492+00:00",
+  "generated_at": "2026-05-03T04:44:04.206025+00:00",
   "focus": "",
   "config": {
     "lookback_days": 30,
@@ -213,6 +213,27 @@
       "category": "llm_eval"
     },
     {
+      "source": "github",
+      "title": "example/repo-issue-copilot",
+      "summary": "Developer tool that summarizes GitHub issues, links relevant docs, and drafts code review checklists for global indie teams.",
+      "url": "https://github.com/example/repo-issue-copilot",
+      "created_at": "",
+      "tags": [
+        "devtools",
+        "github",
+        "issue",
+        "docs"
+      ],
+      "metrics": {
+        "stars": 640,
+        "forks": 58
+      },
+      "raw": {},
+      "metric_summary": "stars=640, forks=58",
+      "heat_score": 7.309,
+      "category": "devtools"
+    },
+    {
       "source": "producthunt",
       "title": "OpsPilot for SMBs",
       "summary": "AI agent that handles repetitive back-office workflows for small businesses.",
@@ -381,6 +402,54 @@
           "metric_summary": "n/a",
           "heat_score": 2.9,
           "category": "agent_workflow"
+        }
+      ]
+    },
+    {
+      "category": "devtools",
+      "title": "开发者效率工具：代码/Issue/文档上下文助手",
+      "total_score": 7.68,
+      "scores": {
+        "heat": 7.78,
+        "pain": 7.75,
+        "opc_fit": 8.6,
+        "speed_to_mvp": 8.0,
+        "defensibility": 6.5,
+        "novelty": 4.9
+      },
+      "source_mix": "github:1",
+      "one_liner": "面向开发者的小工具，自动理解 repo、issue、文档并生成可执行建议或 PR。",
+      "target_user": "独立开发者、小型开源项目维护者、技术团队 TL。",
+      "pain_scenario": "开发者在 issue、文档、日志和代码之间频繁切换，很多上下文整理工作低价值但耗时。",
+      "why_now": "AI coding agent 普及后，开发者愿意为能嵌入 CLI/GitHub 的上下文工具付费。 本次抓取中该方向出现 1 条信号，来源分布：github=1。",
+      "mvp_7d": "做一个 CLI：输入 repo + issue URL，输出修复计划和相关文件。",
+      "mvp_14d": "支持 PR review、文档问答、变更摘要。",
+      "mvp_30d": "接 GitHub App，提供团队仪表盘和自动标签/分派。",
+      "tech_stack": "Python/Node CLI + GitHub API + tree-sitter + embeddings + LLM + GitHub App。",
+      "business_model": "开发者订阅、团队席位、开源免费/私有仓库收费。",
+      "risks": "大厂 coding assistant 覆盖面广；需要专注一个高频窄任务。",
+      "validation_plan": "在 3 个开源项目上 dogfood，量化节省的 triage/review 时间，并做 Show HN/社区发布。",
+      "evidence": [
+        {
+          "source": "github",
+          "title": "example/repo-issue-copilot",
+          "summary": "Developer tool that summarizes GitHub issues, links relevant docs, and drafts code review checklists for global indie teams.",
+          "url": "https://github.com/example/repo-issue-copilot",
+          "created_at": "",
+          "tags": [
+            "devtools",
+            "github",
+            "issue",
+            "docs"
+          ],
+          "metrics": {
+            "stars": 640,
+            "forks": 58
+          },
+          "raw": {},
+          "metric_summary": "stars=640, forks=58",
+          "heat_score": 7.309,
+          "category": "devtools"
         }
       ]
     },

@@ -1,9 +1,9 @@
 # OPC 创业产品创意分析报告
 
-生成时间：2026-05-02T11:49:21-04:00
+生成时间：2026-05-03T00:44:04-04:00
 时间窗口：过去 30 天
-信号数量：9
-去重后机会数：6
+信号数量：10
+去重后机会数：7
 
 ## 1. 执行摘要
 
@@ -15,11 +15,11 @@
 
 2. **垂直工作流 AI Agent：替代人工执行重复服务** — 综合分 7.8/10；核心理由：LLM 工具调用、浏览器自动化和语音/邮件 API 已经足以把单个窄流程做成端到端服务，且 YC 等创业信号正在强调“卖服务而非卖软件”。 本次抓取中该方向出现 3 条信号，来源分布：producthunt=1, hackernews=1, yc_rfs=1。
 
-3. **可访问性/学习辅助 Chrome 插件** — 综合分 7.2/10；核心理由：浏览器端 LLM 能力和网页改写体验成熟，Devpost hackathon 已出现面向 ADHD/阅读障碍的内容适配项目。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。
+3. **开发者效率工具：代码/Issue/文档上下文助手** — 综合分 7.7/10；核心理由：AI coding agent 普及后，开发者愿意为能嵌入 CLI/GitHub 的上下文工具付费。 本次抓取中该方向出现 1 条信号，来源分布：github=1。
 
-4. **AI 语音外呼/预约确认微 SaaS** — 综合分 7.1/10；核心理由：语音模型、实时转写和电话 API 成熟；hackathon 项目中已经出现语音确认 + dashboard + CSV 上传的组合。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。
+4. **可访问性/学习辅助 Chrome 插件** — 综合分 7.2/10；核心理由：浏览器端 LLM 能力和网页改写体验成熟，Devpost hackathon 已出现面向 ADHD/阅读障碍的内容适配项目。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。
 
-5. **电商售前导购/试穿/商品内容自动化** — 综合分 6.6/10；核心理由：多模态模型让虚拟试穿、图文生成和个性化导购的 MVP 成本下降。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。
+5. **AI 语音外呼/预约确认微 SaaS** — 综合分 7.1/10；核心理由：语音模型、实时转写和电话 API 成熟；hackathon 项目中已经出现语音确认 + dashboard + CSV 上传的组合。 本次抓取中该方向出现 1 条信号，来源分布：devpost=1。
 
 
 ## 2. Top 机会排行榜
@@ -31,13 +31,15 @@
 
 | 2 | 垂直工作流 AI Agent：替代人工执行重复服务 | 7.8 | 7.3 | 8.4 | 8.4 | 7.8 | producthunt:1, hackernews:1, yc_rfs:1 |
 
-| 3 | 可访问性/学习辅助 Chrome 插件 | 7.2 | 6.2 | 7.8 | 8.0 | 8.2 | devpost:1 |
+| 3 | 开发者效率工具：代码/Issue/文档上下文助手 | 7.7 | 7.8 | 7.8 | 8.6 | 8.0 | github:1 |
 
-| 4 | AI 语音外呼/预约确认微 SaaS | 7.1 | 5.2 | 9.3 | 7.6 | 7.0 | devpost:1 |
+| 4 | 可访问性/学习辅助 Chrome 插件 | 7.2 | 6.2 | 7.8 | 8.0 | 8.2 | devpost:1 |
 
-| 5 | 电商售前导购/试穿/商品内容自动化 | 6.6 | 5.0 | 7.4 | 7.7 | 7.2 | devpost:1 |
+| 5 | AI 语音外呼/预约确认微 SaaS | 7.1 | 5.2 | 9.3 | 7.6 | 7.0 | devpost:1 |
 
-| 6 | 团队知识库 → 可执行 SOP/Skill 的公司大脑 | 6.5 | 3.4 | 7.8 | 8.3 | 7.5 | yc_rfs:1 |
+| 6 | 电商售前导购/试穿/商品内容自动化 | 6.6 | 5.0 | 7.4 | 7.7 | 7.2 | devpost:1 |
+
+| 7 | 团队知识库 → 可执行 SOP/Skill 的公司大脑 | 6.5 | 3.4 | 7.8 | 8.3 | 7.5 | yc_rfs:1 |
 
 
 ## 3. 产品机会卡片
@@ -107,7 +109,36 @@
 **验证实验**：找 10 个目标用户访谈，要求他们展示当前 SOP；用半自动脚本替他们跑 1 周，衡量节省小时数与愿付价格。
 
 
-### 3. 可访问性/学习辅助 Chrome 插件
+### 3. 开发者效率工具：代码/Issue/文档上下文助手
+
+**一句话概念**：面向开发者的小工具，自动理解 repo、issue、文档并生成可执行建议或 PR。
+
+**目标用户**：独立开发者、小型开源项目维护者、技术团队 TL。
+
+**高频痛点 / 触发场景**：开发者在 issue、文档、日志和代码之间频繁切换，很多上下文整理工作低价值但耗时。
+
+**为什么现在适合做**：AI coding agent 普及后，开发者愿意为能嵌入 CLI/GitHub 的上下文工具付费。 本次抓取中该方向出现 1 条信号，来源分布：github=1。
+
+**证据信号**：
+
+- [example/repo-issue-copilot](https://github.com/example/repo-issue-copilot) — github；stars=640, forks=58
+
+
+**MVP 范围**：
+- 7 天：做一个 CLI：输入 repo + issue URL，输出修复计划和相关文件。
+- 14 天：支持 PR review、文档问答、变更摘要。
+- 30 天：接 GitHub App，提供团队仪表盘和自动标签/分派。
+
+**技术实现建议**：Python/Node CLI + GitHub API + tree-sitter + embeddings + LLM + GitHub App。
+
+**商业化路径**：开发者订阅、团队席位、开源免费/私有仓库收费。
+
+**关键风险**：大厂 coding assistant 覆盖面广；需要专注一个高频窄任务。
+
+**验证实验**：在 3 个开源项目上 dogfood，量化节省的 triage/review 时间，并做 Show HN/社区发布。
+
+
+### 4. 可访问性/学习辅助 Chrome 插件
 
 **一句话概念**：把难读网页实时改写、分块、朗读或练习化，帮助 ADHD/阅读障碍/非母语用户。
 
@@ -136,7 +167,7 @@
 **验证实验**：招募 20 名目标用户试读同一材料，比较完成率、理解分数和持续使用意愿。
 
 
-### 4. AI 语音外呼/预约确认微 SaaS
+### 5. AI 语音外呼/预约确认微 SaaS
 
 **一句话概念**：面向一个垂直行业提供 AI 电话确认、改期、状态同步和异常转人工。
 
@@ -165,7 +196,7 @@
 **验证实验**：拿 3 家本地服务商的真实预约表做 concierge test，比较 no-show 降低与人工时间节省。
 
 
-### 5. 电商售前导购/试穿/商品内容自动化
+### 6. 电商售前导购/试穿/商品内容自动化
 
 **一句话概念**：帮助小电商把商品图、尺码、问答、导购和个性化推荐自动化。
 
@@ -194,7 +225,7 @@
 **验证实验**：找 5 个小店接入 FAQ/导购，跑 2 周，看客服工单减少和转化变化。
 
 
-### 6. 团队知识库 → 可执行 SOP/Skill 的公司大脑
+### 7. 团队知识库 → 可执行 SOP/Skill 的公司大脑
 
 **一句话概念**：把公司文档、Slack、Drive、SOP 转成 agent 可调用的结构化 skill 和问答系统。
 
@@ -232,6 +263,8 @@
 | producthunt | OpsPilot for SMBs | votes=230, comments=34 | https://www.producthunt.com/products/opspilot-for-smbs |
 
 | github | example/agent-evals | stars=850, forks=73 | https://github.com/example/agent-evals |
+
+| github | example/repo-issue-copilot | stars=640, forks=58 | https://github.com/example/repo-issue-copilot |
 
 | hackernews | Show HN: Browser agent that fills forms and extracts structured data | comments=41, points=123 | https://news.ycombinator.com/item?id=sample-browser-agent |
 
