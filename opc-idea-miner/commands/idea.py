@@ -66,7 +66,8 @@ def shell_command(skill_dir: Path, topic: str) -> str:
     return (
         f"cd {shlex.quote(str(skill_dir))} && "
         f"{shlex.quote(str(python_path))} scripts/opc_idea_miner.py run "
-        "--config config.example.yaml --json-stdout --no-report --top 3"
+        "--config config.example.yaml --json-stdout --no-report --top 3 "
+        "--max-per-source 8 --request-timeout 6 --request-retries 0 --global-timeout 35"
         f"{topic_args}"
     )
 

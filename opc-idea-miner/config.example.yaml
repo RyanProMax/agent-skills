@@ -6,6 +6,7 @@ max_per_source: 25
 top_opportunities: 8
 output_language: zh-CN
 request_timeout_seconds: 10
+request_retries: 1
 global_timeout_seconds: 60
 
 seed_topics:

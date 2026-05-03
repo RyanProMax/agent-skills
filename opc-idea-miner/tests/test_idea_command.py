@@ -80,6 +80,22 @@ class IdeaCommandTests(unittest.TestCase):
 
         self.assertIn("test_cli_outputs_strict_json_without_report_files_and_injects_topic", result.stderr)
 
+    def test_executor_uses_fast_collection_defaults_for_channel(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(IDEA_EXECUTOR)],
+            cwd=SKILL_DIR,
+            input=json.dumps({"argsText": "AI agent"}),
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        content = json.loads(result.stdout)["reply"]["content"]
+
+        self.assertIn("--max-per-source 8", content)
+        self.assertIn("--request-timeout 6", content)
+        self.assertIn("--request-retries 0", content)
+        self.assertIn("--global-timeout 35", content)
+
     def test_executor_uses_requirements_hash_cache_path(self) -> None:
         result = subprocess.run(
             [sys.executable, str(IDEA_EXECUTOR)],
@@ -151,7 +167,6 @@ class IdeaCliJsonModeTests(unittest.TestCase):
         self.assertIn("💡 机会", reply["content"])
         self.assertIn("🧪 7天验证", reply["content"])
 
-
     def test_cli_channel_payload_includes_markdown_quality_and_chinese_focus(self) -> None:
         result = subprocess.run(
             [
@@ -215,6 +230,187 @@ class IdeaCliJsonModeTests(unittest.TestCase):
         self.assertIn("time_budget_exceeded", payload["skipped_sources"])
         self.assertIn("data_quality_note", payload)
 
+    def test_request_timeout_is_clipped_by_collection_deadline(self) -> None:
+        script = r"""
+import importlib.util
+import json
+import sys
+import time
+
+spec = importlib.util.spec_from_file_location("opc_idea_miner", "scripts/opc_idea_miner.py")
+module = importlib.util.module_from_spec(spec)
+sys.modules["opc_idea_miner"] = module
+spec.loader.exec_module(module)
+
+class FakeResponse:
+    status_code = 200
+    text = "{}"
+
+    def json(self):
+        return {"ok": True}
+
+seen = {}
+
+def fake_get(url, **kwargs):
+    seen["timeout"] = kwargs["timeout"]
+    return FakeResponse()
+
+module.requests.get = fake_get
+module.REQUEST_TIMEOUT_SECONDS = 10
+module.REQUEST_RETRIES = 0
+module.COLLECTION_DEADLINE = time.monotonic() + 0.25
+module.request_json("https://example.com/api")
+print(json.dumps(seen))
+"""
+        result = subprocess.run(
+            [TEST_PYTHON, "-c", script],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertGreater(payload["timeout"], 0)
+        self.assertLessEqual(payload["timeout"], 0.25)
+
+    def test_collectors_stop_after_reaching_max_per_source(self) -> None:
+        script = r"""
+import importlib.util
+import json
+import sys
+
+spec = importlib.util.spec_from_file_location("opc_idea_miner", "scripts/opc_idea_miner.py")
+module = importlib.util.module_from_spec(spec)
+sys.modules["opc_idea_miner"] = module
+spec.loader.exec_module(module)
+
+calls = {"github": 0, "hackernews": 0}
+
+def fake_request_json(url, *, params=None, **kwargs):
+    if "api.github.com" in url:
+        calls["github"] += 1
+        return {"items": [{
+            "full_name": f"example/repo-{calls['github']}",
+            "description": "Developer tool for repo issue review",
+            "html_url": "https://github.com/example/repo",
+            "created_at": "2026-05-01T00:00:00Z",
+            "topics": ["devtools"],
+            "stargazers_count": 100,
+            "forks_count": 10,
+            "language": "Python",
+            "updated_at": "2026-05-01T00:00:00Z",
+            "license": None,
+        }]}
+    if "hn.algolia.com" in url:
+        calls["hackernews"] += 1
+        return {"hits": [{
+            "title": f"Show HN: Tool {calls['hackernews']}",
+            "story_text": "Developer workflow automation",
+            "url": "https://news.ycombinator.com/item?id=1",
+            "created_at": "2026-05-01T00:00:00Z",
+            "points": 10,
+            "num_comments": 2,
+        }]}
+    raise AssertionError(url)
+
+module.request_json = fake_request_json
+cfg = module.deep_merge(module.DEFAULT_CONFIG, {
+    "max_per_source": 1,
+    "seed_topics": ["alpha", "beta", "gamma"],
+})
+since = module.now_utc()
+github = module.collect_github(cfg, since)
+hackernews = module.collect_hackernews(cfg, since)
+print(json.dumps({
+    "calls": calls,
+    "github_count": len(github),
+    "hackernews_count": len(hackernews),
+}))
+"""
+        result = subprocess.run(
+            [TEST_PYTHON, "-c", script],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertEqual(payload["github_count"], 1)
+        self.assertEqual(payload["hackernews_count"], 1)
+        self.assertEqual(payload["calls"], {"github": 1, "hackernews": 1})
+
+    def test_cli_exposes_request_retries_override_in_channel_config(self) -> None:
+        result = subprocess.run(
+            [
+                TEST_PYTHON,
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--sample",
+                "--json-stdout",
+                "--no-report",
+                "--request-retries",
+                "0",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertEqual(payload["config"]["request_retries"], 0)
+
+    def test_cli_channel_payload_includes_collection_metrics(self) -> None:
+        result = subprocess.run(
+            [
+                TEST_PYTHON,
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--sample",
+                "--json-stdout",
+                "--no-report",
+                "--top",
+                "3",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertIn("collection_metrics", payload)
+        self.assertEqual(payload["collection_metrics"][0]["source"], "sample")
+        self.assertEqual(payload["collection_metrics"][0]["status"], "ok")
+        self.assertGreater(payload["collection_metrics"][0]["signal_count"], 0)
+        self.assertIn("duration_ms", payload["collection_metrics"][0])
+
+    def test_time_budget_exceeded_is_reflected_in_collection_metrics(self) -> None:
+        result = subprocess.run(
+            [
+                TEST_PYTHON,
+                str(SKILL_DIR / "scripts" / "opc_idea_miner.py"),
+                "run",
+                "--config",
+                "config.example.yaml",
+                "--json-stdout",
+                "--no-report",
+                "--global-timeout",
+                "0.001",
+            ],
+            cwd=SKILL_DIR,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+
+        self.assertIn("time_budget_exceeded", payload["skipped_sources"])
+        self.assertIn("collection_metrics", payload)
+        self.assertEqual(payload["collection_metrics"][0]["status"], "skipped")
+        self.assertEqual(payload["collection_metrics"][0]["error"], "time_budget_exceeded")
 
     def test_quality_fixtures_rank_chinese_focus_topics(self) -> None:
         cases = [

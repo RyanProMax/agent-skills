@@ -1,6 +1,6 @@
 {
   "schema": "opc_idea_miner.v1",
-  "generated_at": "2026-05-03T04:44:04.206025+00:00",
+  "generated_at": "2026-05-03T05:24:38.692963+00:00",
   "focus": "",
   "config": {
     "lookback_days": 30,
@@ -8,6 +8,7 @@
     "top_opportunities": 8,
     "output_language": "zh-CN",
     "request_timeout_seconds": 10,
+    "request_retries": 1,
     "global_timeout_seconds": 60,
     "seed_topics": [
       "ai agent",
@@ -59,6 +60,14 @@
     }
   },
   "skipped_sources": [],
+  "collection_metrics": [
+    {
+      "source": "sample",
+      "status": "ok",
+      "duration_ms": 0.0,
+      "signal_count": 10
+    }
+  ],
   "signals": [
     {
       "source": "devpost",

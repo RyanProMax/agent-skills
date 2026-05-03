@@ -41,6 +41,8 @@ USER_AGENT = (
     "(+local research CLI; respect robots/ToS; contact: user-configured)"
 )
 REQUEST_TIMEOUT_SECONDS = 25.0
+REQUEST_RETRIES = 1
+COLLECTION_DEADLINE: Optional[float] = None
 
 DEFAULT_CONFIG: Dict[str, Any] = {
     "lookback_days": 30,
@@ -48,6 +50,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "top_opportunities": 8,
     "output_language": "zh-CN",
     "request_timeout_seconds": 10,
+    "request_retries": 1,
     "global_timeout_seconds": 60,
     "seed_topics": [
         "ai agent",
@@ -578,6 +581,30 @@ def normalize_weights(weights: Dict[str, float]) -> Dict[str, float]:
     return {k: float(v) / total for k, v in weights.items()}
 
 
+def remaining_collection_budget() -> Optional[float]:
+    if COLLECTION_DEADLINE is None:
+        return None
+    return COLLECTION_DEADLINE - time.monotonic()
+
+
+def resolve_request_timeout(timeout: Optional[float]) -> float:
+    effective_timeout = float(REQUEST_TIMEOUT_SECONDS if timeout is None else timeout)
+    remaining = remaining_collection_budget()
+    if remaining is None:
+        return effective_timeout
+    if remaining <= 0:
+        raise CollectorError("time_budget_exceeded")
+    return min(effective_timeout, max(0.001, remaining))
+
+
+def retry_sleep_seconds(attempt: int) -> float:
+    sleep_for = 0.8 * (attempt + 1)
+    remaining = remaining_collection_budget()
+    if remaining is not None:
+        sleep_for = min(sleep_for, max(0.0, remaining))
+    return sleep_for
+
+
 def request_json(
     url: str,
     *,
@@ -585,16 +612,17 @@ def request_json(
     headers: Optional[Dict[str, str]] = None,
     method: str = "GET",
     json_body: Optional[Dict[str, Any]] = None,
-    retries: int = 2,
+    retries: Optional[int] = None,
     timeout: Optional[float] = None,
 ) -> Any:
-    effective_timeout = REQUEST_TIMEOUT_SECONDS if timeout is None else timeout
+    effective_retries = max(0, int(REQUEST_RETRIES if retries is None else retries))
     merged_headers = {"User-Agent": USER_AGENT}
     if headers:
         merged_headers.update(headers)
     last_error: Optional[Exception] = None
-    for attempt in range(retries + 1):
+    for attempt in range(effective_retries + 1):
         try:
+            effective_timeout = resolve_request_timeout(timeout)
             if method.upper() == "POST":
                 resp = requests.post(
                     url, params=params, headers=merged_headers, json=json_body, timeout=effective_timeout
@@ -606,8 +634,15 @@ def request_json(
             return resp.json()
         except Exception as exc:  # noqa: BLE001 - collector should keep going
             last_error = exc
-            if attempt < retries:
-                time.sleep(0.8 * (attempt + 1))
+            if str(exc) == "time_budget_exceeded":
+                break
+            remaining = remaining_collection_budget()
+            if remaining is not None and remaining <= 0:
+                break
+            if attempt < effective_retries:
+                sleep_for = retry_sleep_seconds(attempt)
+                if sleep_for > 0:
+                    time.sleep(sleep_for)
     raise CollectorError(str(last_error))
 
 
@@ -615,13 +650,14 @@ def request_text(
     url: str,
     *,
     params: Optional[Dict[str, Any]] = None,
-    retries: int = 2,
+    retries: Optional[int] = None,
     timeout: Optional[float] = None,
 ) -> str:
-    effective_timeout = REQUEST_TIMEOUT_SECONDS if timeout is None else timeout
+    effective_retries = max(0, int(REQUEST_RETRIES if retries is None else retries))
     last_error: Optional[Exception] = None
-    for attempt in range(retries + 1):
+    for attempt in range(effective_retries + 1):
         try:
+            effective_timeout = resolve_request_timeout(timeout)
             resp = requests.get(
                 url, params=params, headers={"User-Agent": USER_AGENT}, timeout=effective_timeout
             )
@@ -630,18 +666,29 @@ def request_text(
             return resp.text
         except Exception as exc:  # noqa: BLE001
             last_error = exc
-            if attempt < retries:
-                time.sleep(0.8 * (attempt + 1))
+            if str(exc) == "time_budget_exceeded":
+                break
+            remaining = remaining_collection_budget()
+            if remaining is not None and remaining <= 0:
+                break
+            if attempt < effective_retries:
+                sleep_for = retry_sleep_seconds(attempt)
+                if sleep_for > 0:
+                    time.sleep(sleep_for)
     raise CollectorError(str(last_error))
 
 
 def collect_hackernews(cfg: Dict[str, Any], since: datetime, verbose: bool = False) -> List[Signal]:
     max_per_source = int(cfg["max_per_source"])
+    if max_per_source <= 0:
+        return []
     topics = list(dict.fromkeys(["Show HN"] + cfg.get("seed_topics", [])))
     since_ts = int(since.timestamp())
     per_topic = max(5, math.ceil(max_per_source / max(1, min(len(topics), 8))))
     signals: List[Signal] = []
     for topic in topics[:12]:
+        if len(signals) >= max_per_source:
+            break
         params = {
             "query": topic,
             "tags": "story",
@@ -668,6 +715,8 @@ def collect_hackernews(cfg: Dict[str, Any], since: datetime, verbose: bool = Fal
                     raw=hit,
                 )
             )
+            if len(signals) >= max_per_source:
+                break
     if verbose:
         print(f"[hackernews] collected {len(signals)}", file=sys.stderr)
     return signals[:max_per_source]
@@ -675,6 +724,8 @@ def collect_hackernews(cfg: Dict[str, Any], since: datetime, verbose: bool = Fal
 
 def collect_github(cfg: Dict[str, Any], since: datetime, verbose: bool = False) -> List[Signal]:
     max_per_source = int(cfg["max_per_source"])
+    if max_per_source <= 0:
+        return []
     topics = cfg.get("seed_topics", [])
     per_topic = max(5, math.ceil(max_per_source / max(1, min(len(topics), 10))))
     signals: List[Signal] = []
@@ -687,6 +738,8 @@ def collect_github(cfg: Dict[str, Any], since: datetime, verbose: bool = False) 
         headers["Authorization"] = f"Bearer {token}"
     since_date = since.date().isoformat()
     for topic in topics[:12]:
+        if len(signals) >= max_per_source:
+            break
         q = f'{topic} created:>={since_date} stars:>=5'
         params = {"q": q, "sort": "stars", "order": "desc", "per_page": per_topic}
         data = request_json(
@@ -716,6 +769,8 @@ def collect_github(cfg: Dict[str, Any], since: datetime, verbose: bool = False) 
                     },
                 )
             )
+            if len(signals) >= max_per_source:
+                break
     if verbose:
         print(f"[github] collected {len(signals)}", file=sys.stderr)
     return signals[:max_per_source]
@@ -1060,11 +1115,35 @@ def sample_signals() -> List[Signal]:
     ]
 
 
-def collect_all(cfg: Dict[str, Any], sample: bool = False, verbose: bool = False) -> Tuple[List[Signal], List[str]]:
+def build_collection_metric(
+    source: str,
+    status: str,
+    started_at: float,
+    signal_count: int = 0,
+    error: str = "",
+) -> Dict[str, Any]:
+    metric: Dict[str, Any] = {
+        "source": source,
+        "status": status,
+        "duration_ms": round(max(0.0, time.monotonic() - started_at) * 1000, 1),
+        "signal_count": signal_count,
+    }
+    if error:
+        metric["error"] = error
+    return metric
+
+
+def collect_all(
+    cfg: Dict[str, Any],
+    sample: bool = False,
+    verbose: bool = False,
+) -> Tuple[List[Signal], List[str], List[Dict[str, Any]]]:
     if sample:
+        started_at = time.monotonic()
         if cfg.get("empty_sample"):
-            return [], ["empty_sample"]
-        return sample_signals(), []
+            return [], ["empty_sample"], [build_collection_metric("sample", "empty", started_at, 0)]
+        signals = sample_signals()
+        return signals, [], [build_collection_metric("sample", "ok", started_at, len(signals))]
 
     since = now_utc() - timedelta(days=int(cfg.get("lookback_days", 30)))
     source_flags = cfg.get("sources", {})
@@ -1079,25 +1158,42 @@ def collect_all(cfg: Dict[str, Any], sample: bool = False, verbose: bool = False
     ]
     signals: List[Signal] = []
     skipped: List[str] = []
+    collection_metrics: List[Dict[str, Any]] = []
     budget = float(cfg.get("global_timeout_seconds", 60) or 60)
     deadline = time.monotonic() + budget
     if budget <= 0.01:
-        return [], ["time_budget_exceeded"]
+        started_at = time.monotonic()
+        return [], ["time_budget_exceeded"], [
+            build_collection_metric("all", "skipped", started_at, 0, "time_budget_exceeded")
+        ]
 
-    for name, func in collectors:
-        if not source_flags.get(name, False):
-            continue
-        if time.monotonic() >= deadline:
-            skipped.append("time_budget_exceeded")
-            break
-        try:
-            part = func(cfg, since, verbose=verbose)
-            signals.extend(part)
-        except Exception as exc:  # noqa: BLE001 - preserve pipeline
-            skipped.append(f"{name}: {exc}")
-            if verbose:
-                print(f"[{name}] skipped: {exc}", file=sys.stderr)
-    return dedupe_signals(signals), skipped
+    global COLLECTION_DEADLINE
+    previous_deadline = COLLECTION_DEADLINE
+    COLLECTION_DEADLINE = deadline
+    try:
+        for name, func in collectors:
+            if not source_flags.get(name, False):
+                continue
+            started_at = time.monotonic()
+            if started_at >= deadline:
+                skipped.append("time_budget_exceeded")
+                collection_metrics.append(
+                    build_collection_metric(name, "skipped", started_at, 0, "time_budget_exceeded")
+                )
+                break
+            try:
+                part = func(cfg, since, verbose=verbose)
+                signals.extend(part)
+                collection_metrics.append(build_collection_metric(name, "ok", started_at, len(part)))
+            except Exception as exc:  # noqa: BLE001 - preserve pipeline
+                error = str(exc)
+                skipped.append(f"{name}: {error}")
+                collection_metrics.append(build_collection_metric(name, "error", started_at, 0, error))
+                if verbose:
+                    print(f"[{name}] skipped: {exc}", file=sys.stderr)
+    finally:
+        COLLECTION_DEADLINE = previous_deadline
+    return dedupe_signals(signals), skipped, collection_metrics
 
 
 def signal_key(signal: Signal) -> str:
@@ -1345,6 +1441,7 @@ def build_json_payload(
     skipped: Sequence[str],
     cfg: Dict[str, Any],
     focus: str,
+    collection_metrics: Sequence[Dict[str, Any]],
 ) -> Dict[str, Any]:
     return {
         "schema": "opc_idea_miner.v1",
@@ -1352,6 +1449,7 @@ def build_json_payload(
         "focus": focus,
         "config": cfg,
         "skipped_sources": list(skipped),
+        "collection_metrics": list(collection_metrics),
         "signals": [signal_to_dict(s) for s in signals],
         "opportunities": [opportunity_to_dict(o) for o in opportunities],
     }
@@ -1560,6 +1658,7 @@ def build_channel_json_payload(
     skipped: Sequence[str],
     cfg: Dict[str, Any],
     focus: str,
+    collection_metrics: Sequence[Dict[str, Any]],
 ) -> Dict[str, Any]:
     top_limit = int(cfg.get("top_opportunities", 8) or 8)
     ranked = rank_opportunities_for_focus(opportunities, focus)[:top_limit]
@@ -1603,9 +1702,11 @@ def build_channel_json_payload(
             "seed_topics": cfg.get("seed_topics", []),
             "sources": cfg.get("sources", {}),
             "request_timeout_seconds": cfg.get("request_timeout_seconds"),
+            "request_retries": cfg.get("request_retries"),
             "global_timeout_seconds": cfg.get("global_timeout_seconds"),
         },
         "skipped_sources": list(skipped),
+        "collection_metrics": list(collection_metrics),
         "data_quality": data_quality,
         "data_quality_note": data_quality_note,
         "top_opportunities": top_opportunities,
@@ -1641,13 +1742,14 @@ def write_outputs(
     out_path: str,
     json_out_path: Optional[str],
     focus: str = "",
+    collection_metrics: Sequence[Dict[str, Any]] = (),
 ) -> None:
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(report, encoding="utf-8")
 
     if json_out_path:
-        payload = build_json_payload(signals, opportunities, skipped, cfg, focus)
+        payload = build_json_payload(signals, opportunities, skipped, cfg, focus, collection_metrics)
         jout = Path(json_out_path)
         jout.parent.mkdir(parents=True, exist_ok=True)
         jout.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -1687,6 +1789,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--top", type=int, default=None, help="Override top_opportunities")
     run.add_argument("--global-timeout", type=float, default=None, help="Overall online collection budget in seconds")
     run.add_argument("--request-timeout", type=float, default=None, help="Per-request timeout in seconds")
+    run.add_argument("--request-retries", type=int, default=None, help="Per-request retry count")
     run.add_argument("--topic", action="append", default=[], help="Prepend a focus topic to seed_topics; may be repeated")
     run.add_argument("--json-stdout", action="store_true", help="Print strict channel JSON to stdout")
     run.add_argument("--no-report", action="store_true", help="Do not write Markdown or JSON report files")
@@ -1714,22 +1817,39 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         cfg["global_timeout_seconds"] = args.global_timeout
     if args.request_timeout is not None:
         cfg["request_timeout_seconds"] = args.request_timeout
+    if args.request_retries is not None:
+        cfg["request_retries"] = args.request_retries
     if args.empty_sample:
         cfg["empty_sample"] = True
-    global REQUEST_TIMEOUT_SECONDS
+    global REQUEST_TIMEOUT_SECONDS, REQUEST_RETRIES
     REQUEST_TIMEOUT_SECONDS = float(cfg.get("request_timeout_seconds", REQUEST_TIMEOUT_SECONDS) or REQUEST_TIMEOUT_SECONDS)
+    REQUEST_RETRIES = max(0, int(cfg.get("request_retries", REQUEST_RETRIES) or 0))
     focus = inject_topic_seed_topics(cfg, args.topic)
 
-    signals, skipped = collect_all(cfg, sample=args.sample or args.empty_sample, verbose=args.verbose)
+    signals, skipped, collection_metrics = collect_all(
+        cfg, sample=args.sample or args.empty_sample, verbose=args.verbose
+    )
     signals = dedupe_signals(signals)
     opportunities = build_opportunities(signals, cfg)
     if args.json_stdout:
-        payload = build_channel_json_payload(signals, opportunities, skipped, cfg, focus)
+        payload = build_channel_json_payload(
+            signals, opportunities, skipped, cfg, focus, collection_metrics
+        )
         print(json.dumps(payload, ensure_ascii=False, indent=2))
 
     if not args.no_report:
         report = render_report(signals, opportunities, cfg)
-        write_outputs(report, signals, opportunities, skipped, cfg, args.out, args.json_out, focus)
+        write_outputs(
+            report,
+            signals,
+            opportunities,
+            skipped,
+            cfg,
+            args.out,
+            args.json_out,
+            focus,
+            collection_metrics,
+        )
         if not args.json_stdout:
             print_summary(opportunities, skipped, args.out, args.json_out)
     return 0
