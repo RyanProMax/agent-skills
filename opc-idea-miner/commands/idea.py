@@ -35,7 +35,7 @@ def venv_dir(skill_dir: Path) -> Path:
     override = os.environ.get("OPC_IDEA_MINER_VENV")
     if override:
         return Path(override).expanduser()
-    return Path(tempfile.gettempdir()) / f"cli-claw-opc-idea-miner-venv-{requirements_hash(skill_dir)}"
+    return Path(tempfile.gettempdir()) / f"agent-fabric-opc-idea-miner-venv-{requirements_hash(skill_dir)}"
 
 
 def venv_python(skill_dir: Path) -> Path:

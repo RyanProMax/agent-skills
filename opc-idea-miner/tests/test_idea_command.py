@@ -107,7 +107,7 @@ class IdeaCommandTests(unittest.TestCase):
         )
         content = json.loads(result.stdout)["reply"]["content"]
 
-        self.assertIn("cli-claw-opc-idea-miner-venv-", content)
+        self.assertIn("agent-fabric-opc-idea-miner-venv-", content)
 
 
 class IdeaCliJsonModeTests(unittest.TestCase):
